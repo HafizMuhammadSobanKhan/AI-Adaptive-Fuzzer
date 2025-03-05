@@ -1,8 +1,8 @@
 # **AI-Adaptive-Fuzzer**  
-### **AI-Enhanced Adaptive Fuzzing for Automated Vulnerability Detection**
+### **AI-Driven Adaptive Fuzzing for Automated Vulnerability Detection**
 
 ## **Overview**
-AI-Adaptive-Fuzzer is an **AI-driven fuzzing framework** that integrates **Reinforcement Learning (RL) with AFL++** to **intelligently optimize mutation strategies** for software security testing. The framework continuously adapts its fuzzing approach based on **real-time execution feedback**, improving **code coverage**, **mutation efficiency**, and **vulnerability discovery** in **embedded systems and software applications**.
+The AI-Adaptive-Fuzzer is an **AI-enhanced fuzzing framework** that integrates **Reinforcement Learning (RL) with AFL++** to **intelligently optimize mutation strategies** for software security testing. The framework continuously adapts its fuzzing approach based on **real-time execution feedback**, improving **code coverage**, **mutation efficiency**, and **vulnerability discovery** in **embedded systems and software applications**.
 
 This project builds upon **AFL++**, extending its capabilities with **AI-driven mutation selection and execution feedback mechanisms**. The framework has been rigorously tested on **LAVA-M (synthetic vulnerability dataset) and Zephyr RTOS (real-world embedded systems)**.
 
@@ -28,27 +28,101 @@ The AI-Adaptive-Fuzzer consists of multiple key components:
 
 ---
 
-## **Setup & Configuration**
-To successfully **run and evaluate** the AI-Adaptive-Fuzzer, follow these steps:
+## **Setup & Installation**
+### **1️⃣ Install Dependencies**
+Ensure your system has the required dependencies installed before running the AI-Adaptive-Fuzzer.
 
-### **1️⃣ Install Required Dependencies**
-- Ensure your system has **Python 3.8+** and the necessary libraries installed.
-- AFL++ should be properly installed and configured.
+#### **🔹 Install AFL++**
+```bash
+sudo apt update && sudo apt install -y build-essential python3 python3-pip cmake clang llvm
+git clone https://github.com/AFLplusplus/AFLplusplus.git
+cd AFLplusplus
+make distrib && sudo make install
+```
+
+#### **🔹 Install Python Libraries**
+```bash
+pip install stable-baselines3 gym numpy pandas torch
+```
+
+#### **🔹 Install Additional Tools**
+```bash
+sudo apt install -y gdb lcov jq
+```
+
+---
 
 ### **2️⃣ Compile the Target Program**
-- The target program (e.g., a **Base64 vulnerability replica from LAVA-M**) must be **compiled with AFL++ instrumentation**.
-- Ensure the binary executes correctly before running the fuzzer.
+The target program (e.g., a **Base64 vulnerability replica from LAVA-M**) must be **compiled with AFL++ instrumentation**.
+
+```bash
+afl-clang-fast -o target_binary target_source.c
+chmod +x target_binary
+```
+**✅ Ensure the binary runs before fuzzing:**
+```bash
+./target_binary test_input
+```
+
+---
 
 ### **3️⃣ Configure Input & Output Directories**
-- **Seed input files** must be provided for fuzzing.
-- The **output directory** should be properly set up for storing fuzzing results.
+- Ensure the **input directory** contains a set of **seed test cases**.
+- The **output directory** will store fuzzing results and logs.
+
+```bash
+mkdir -p ~/AFLplusplus/inputs
+echo "test" > ~/AFLplusplus/inputs/testcase1
+chmod -R 777 ~/AFLplusplus/inputs
+mkdir -p ~/AFLplusplus/outputs
+```
+
+---
 
 ### **4️⃣ Run AI-Enhanced Fuzzing**
-- The AI-driven fuzzer should be executed with the appropriate settings to **allow reinforcement learning-based decision-making**.
+The AI-enhanced fuzzer should be executed with the appropriate settings.
 
-### **5️⃣ Monitor Execution & Collect Results**
-- The framework **logs mutation decisions, execution results, and crash reports** for evaluation.
-- Performance can be analyzed using **mutation logs, code coverage data, and detected vulnerabilities**.
+```bash
+python ~/AFLplusplus/run_adaptive_fuzzing.py --target ./target_binary --input ~/AFLplusplus/inputs --output ~/AFLplusplus/outputs
+```
+**🔹 What this does:**
+- Launches the **Reinforcement Learning (RL) agent** to **select optimal mutations**.
+- Executes AFL++ with **AI-driven mutation selection**.
+- Logs fuzzing activity in **mutation_log.txt**.
+
+---
+
+### **5️⃣ Running Traditional AFL++ for Comparison**
+To benchmark against standard **mutation-based fuzzing**, run:
+
+```bash
+afl-fuzz -i inputs -o outputs -- ./target_binary
+```
+
+**🔹 Why?**  
+- This helps **compare performance** between **traditional fuzzing and AI-enhanced fuzzing**.
+- AI fuzzing should **show better code coverage & vulnerability detection**.
+
+---
+
+## **Monitoring Execution & Collecting Results**
+### **📌 AI Mutation Log**
+To **see AI-selected mutations & rewards**, run:
+```bash
+cat ~/AFLplusplus/mutation_log.txt
+```
+
+### **📌 Code Coverage Analysis**
+To **measure how much of the code was explored**, run:
+```bash
+cat ~/AFLplusplus/outputs/fuzzer_stats | grep "bitmap_cvg"
+```
+
+### **📌 Count Unique Crashes**
+To check if new **crashes** were found:
+```bash
+ls -lh ~/AFLplusplus/outputs/crashes | wc -l
+```
 
 ---
 
