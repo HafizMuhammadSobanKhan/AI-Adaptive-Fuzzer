@@ -1,0 +1,6 @@
+# environment variables:
+AFL_CUSTOM_INFO_PROGRAM=/home/kios/AFLplusplus/target_binary
+AFL_CUSTOM_INFO_PROGRAM_ARGV=-m splice
+AFL_CUSTOM_INFO_OUT=/home/kios/AFLplusplus/outputs/adaptive_fuzzer
+# command line:
+'afl-fuzz' '-i' '/home/kios/AFLplusplus/inputs' '-o' '/home/kios/AFLplusplus/outputs' '-M' 'adaptive_fuzzer' '--' '/home/kios/AFLplusplus/target_binary' '-m' 'splice'

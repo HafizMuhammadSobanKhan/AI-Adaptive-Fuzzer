@@ -23,9 +23,7 @@
    how they affect the execution path.
 
  */
-
 #include "afl-fuzz.h"
-
 struct custom_mutator *load_custom_mutator(afl_state_t *, const char *);
 #ifdef USE_PYTHON
 struct custom_mutator *load_custom_mutator_py(afl_state_t *, char *);
@@ -33,42 +31,75 @@ struct custom_mutator *load_custom_mutator_py(afl_state_t *, char *);
 
 void run_afl_custom_queue_new_entry(afl_state_t *afl, struct queue_entry *q,
                                     u8 *fname, u8 *mother_fname) {
+  
+  printf("[DEBUG] Entering run_afl_custom_queue_new_entry()\n");
+  fflush(stdout);
 
   if (afl->custom_mutators_count) {
 
     u8 updated = 0;
 
     LIST_FOREACH(&afl->custom_mutator_list, struct custom_mutator, {
+      
+      printf("[DEBUG] Checking custom mutator...\n");
+      fflush(stdout);
 
       if (el->afl_custom_queue_new_entry) {
+    // ✅ Force log entry to verify execution
+    FILE *log_file = fopen("/home/kios/AFLplusplus/mutation_log.txt", "a");
+    if (log_file) {
+        fprintf(log_file, "Mutation Applied: Custom Mutator\n");
+        fflush(log_file);
+        fclose(log_file);
+        printf("[DEBUG] Mutation log successfully written.\n");
+        fflush(stdout);
+    } else {
+        printf("[ERROR] Failed to open mutation_log.txt for writing.\n");
+        perror("fopen");
+        fflush(stdout);
+    }
+        printf("[DEBUG] Calling afl_custom_queue_new_entry\n");
+        fflush(stdout);
 
-        if (el->afl_custom_queue_new_entry(el->data, fname, mother_fname)) {
-
-          updated = 1;
-
+        // ✅ Log mutation details
+        FILE *log_file = fopen("/home/kios/AFLplusplus/mutation_log.txt", "a");
+        if (log_file) {
+            fprintf(log_file, "Mutation Applied: Custom Mutator\n");
+            fflush(log_file);  // ✅ Force immediate write to disk
+            fclose(log_file);
+            printf("[DEBUG] Mutation log successfully written.\n");  // ✅ Debug print
+            fflush(stdout);
+        } else {
+            printf("[ERROR] Failed to open mutation_log.txt for writing. Check permissions!\n");
+            perror("fopen");  // ✅ Print detailed system error
+            fflush(stdout);
         }
 
+        if (el->afl_custom_queue_new_entry(el->data, fname, mother_fname)) {
+            updated = 1;
+            printf("[DEBUG] Mutation successfully applied.\n");  // ✅ Confirm mutation execution
+            fflush(stdout);
+        }
       }
-
     });
 
     if (updated) {
+      printf("[DEBUG] Mutation successful, checking file status...\n");
+      fflush(stdout);
 
       struct stat st;
-      if (stat(fname, &st)) { PFATAL("File %s is gone!", fname); }
-      if (!st.st_size) {
-
-        FATAL("File %s became empty in custom mutator!", fname);
-
+      if (stat(fname, &st)) { 
+        PFATAL("File %s is gone!", fname); 
       }
-
+      if (!st.st_size) {
+        FATAL("File %s became empty in custom mutator!", fname);
+      }
+      
       q->len = st.st_size;
-
     }
-
   }
-
 }
+
 
 void setup_custom_mutators(afl_state_t *afl) {
 
